@@ -15,6 +15,24 @@ public class RealmsController : ControllerBase
         _realmService = realmService;
     }
     
+    [HttpGet]
+    public async Task<IActionResult> GetAllRealms()
+    {
+        var realms = await _realmService.GetAllRealmsAsync();
+        return Ok(realms);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetRealmById(string id)
+    {
+        var realm = await _realmService.GetRealmByIdAsync(id);
+        if (realm == null)
+        {
+            return NotFound($"Realm với ID {id} không tìm thấy.");
+        }
+        return Ok(realm);
+    }
+    
     [HttpPost]
     public async Task<ActionResult> CreateRealm([FromBody] RealmInsertRequest realmRequest)
     {

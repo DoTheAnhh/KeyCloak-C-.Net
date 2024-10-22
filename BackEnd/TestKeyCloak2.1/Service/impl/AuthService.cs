@@ -1,7 +1,7 @@
 ﻿using System.Net.Http.Headers;
 using System.Text;
 using Newtonsoft.Json;
-using TestKeyCloak2._1.DTO;
+using TestKeyCloak2._1.DTO.User;
 
 namespace TestKeyCloak2._1.Service.impl
 {
@@ -38,40 +38,63 @@ namespace TestKeyCloak2._1.Service.impl
             return null;
         }
 
-        public async Task<string> RegisterUser(LoginRegisterRequest loginRegisterRequest)
+        public async Task<string> RegisterUser(LoginRegisterRequest loginRegisterRequest, string realm)
         {
+            // Kiểm tra thông tin đầu vào
+            if (loginRegisterRequest == null)
+            {
+                return "LoginRegisterRequest cannot be null.";
+            }
+
+            if (string.IsNullOrEmpty(realm))
+            {
+                return "Realm cannot be null or empty.";
+            }
+
             var adminToken = await GetAdminToken();
             if (string.IsNullOrEmpty(adminToken))
             {
                 return "Failed to obtain admin token.";
             }
 
-            var url = "http://localhost:8080/admin/realms/DemoRealm/users";
+            var url = $"http://localhost:8080/admin/realms/{realm}/users";
             var newUser = new
             {
                 username = loginRegisterRequest.Username,
                 enabled = true,
-                email = $"{loginRegisterRequest.Username}@example.com", 
-                credentials = new[] { new { type = "password", value = loginRegisterRequest.Password, temporary = false } }
+                email = $"{loginRegisterRequest.Username}@example.com",
+                credentials = new[] 
+                {
+                    new 
+                    { 
+                        type = "password", 
+                        value = loginRegisterRequest.Password, 
+                        temporary = false 
+                    } 
+                }
             };
 
             var jsonContent = JsonConvert.SerializeObject(newUser);
             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
 
+            // Gửi yêu cầu POST
             var response = await _httpClient.PostAsync(url, content);
+    
+            // Kiểm tra trạng thái phản hồi
             if (response.IsSuccessStatusCode)
             {
                 return "User registered successfully.";
             }
-
+    
             var errorResponse = await response.Content.ReadAsStringAsync();
-            return $"Error: {errorResponse}";
+            return $"Error: {response.StatusCode} - {errorResponse}";
         }
 
-        public async Task<string> LoginUser(LoginRegisterRequest loginRegisterRequest)
+
+        public async Task<string> LoginUser(LoginRegisterRequest loginRegisterRequest, string realm)
         {
-            var url = "http://localhost:8080/realms/DemoRealm/protocol/openid-connect/token";
+            var url = $"http://localhost:8080/realms/{realm}/protocol/openid-connect/token";
 
             var requestData = new[]
             {

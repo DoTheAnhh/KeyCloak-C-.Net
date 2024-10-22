@@ -1,8 +1,8 @@
 import { Route, Routes } from 'react-router-dom'
 import './App.css'
-import Login from './components/Login'
-import Success from './components/Success/Success'
-import Register from './components/Register'
+import Login from './components/Login/Login'
+import Register from './components/Login/Register'
+import LayoutAdmin from './components/AdminConsole/LayoutAdmin'
 
 function App() {
 
@@ -11,7 +11,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/success" element={<Success />} />
+        <Route path="/admin/*" element={<LayoutAdmin />} />
       </Routes>
     </>
   )

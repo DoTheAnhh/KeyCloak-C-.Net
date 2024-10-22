@@ -11,12 +11,10 @@ namespace TestKeyCloak2._1.Service.impl
     public class UserService : IUserService
     {
         private readonly HttpClient _httpClient;
-        private readonly string _baseUri;
 
         public UserService(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _baseUri = "http://localhost:8080/admin/realms/DemoRealm/users";
         }
 
         public async Task<string> GetAccessToken()
@@ -44,111 +42,98 @@ namespace TestKeyCloak2._1.Service.impl
             throw new Exception($"Error retrieving access token: {response.ReasonPhrase}");
         }
 
-        public async Task<List<UserResponse>> GetUser()
+        public async Task<List<UserResponse>> GetUser(string realm)
         {
             var accessToken = await GetAccessToken();
-
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
-            var response = await _httpClient.GetAsync($"{_baseUri}");
+            var response = await _httpClient.GetAsync($"http://localhost:8080/admin/realms/{realm}/users");
 
             var responseData = await response.Content.ReadAsStringAsync();
-
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
-
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
             var userDtos = JsonSerializer.Deserialize<List<UserResponse>>(responseData, options);
 
             return userDtos!;
         }
 
-        public async Task<UserResponse> GetUserById(string id)
+        public async Task<UserResponse> GetUserById(string realm, string id)
         {
             var accessToken = await GetAccessToken();
-
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
-            var response = await _httpClient.GetAsync($"{_baseUri}/{id}");
+            var response = await _httpClient.GetAsync($"http://localhost:8080/admin/realms/{realm}/users/{id}");
 
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
-                throw new Exception($"Error retrieving user: {response.ReasonPhrase}, Details: {errorContent}");
+                throw new Exception($"Lỗi khi lấy người dùng: {response.ReasonPhrase}, Chi tiết: {errorContent}");
             }
 
             var responseData = await response.Content.ReadAsStringAsync();
-            var options = new JsonSerializerOptions()
-            {
-                PropertyNameCaseInsensitive = true,
-            };
-
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
             var userDto = JsonSerializer.Deserialize<UserResponse>(responseData, options);
 
             return userDto!;
         }
 
-        public async Task CreateUser(UserInsertRequest userDto)
+        public async Task CreateUser(UserInsertRequest userDto, string realm)
+{
+    var accessToken = await GetAccessToken();
+    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+    // Tuần tự hóa UserInsertRequest thành JSON
+    var jsonContent = JsonSerializer.Serialize(userDto);
+    var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+    var response = await _httpClient.PostAsync($"http://localhost:8080/admin/realms/{realm}/users", content);
+
+    if (!response.IsSuccessStatusCode)
+    {
+        var errorContent = await response.Content.ReadAsStringAsync();
+        if (response.StatusCode == HttpStatusCode.Conflict)
         {
-            var accessToken = await GetAccessToken();
-
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-            // Tuần tự hóa UserInsertRequest thành JSON
-            var jsonContent = JsonSerializer.Serialize(userDto);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PostAsync(_baseUri, content);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                if (response.StatusCode == HttpStatusCode.Conflict)
-                {
-                    throw new Exception($"Người dùng đã tồn tại. Chi tiết: {errorContent}");
-                }
-                throw new Exception($"Lỗi khi tạo người dùng: {response.ReasonPhrase}, Chi tiết: {errorContent}");
-            }
+            throw new Exception($"Người dùng đã tồn tại. Chi tiết: {errorContent}");
         }
+        throw new Exception($"Lỗi khi tạo người dùng: {response.ReasonPhrase}, Chi tiết: {errorContent}");
+    }
+}
 
-        public async Task EditUser(string userId, UserEditRequest userDto)
+public async Task EditUser(string realm, string userId, UserEditRequest userDto)
+{
+    var accessToken = await GetAccessToken();
+    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+    // Tuần tự hóa UserEditRequest thành JSON
+    var jsonContent = JsonSerializer.Serialize(userDto);
+    var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+    // Gọi API với ID của người dùng
+    var response = await _httpClient.PutAsync($"http://localhost:8080/admin/realms/{realm}/users/{userId}", content);
+
+    if (!response.IsSuccessStatusCode)
+    {
+        var errorContent = await response.Content.ReadAsStringAsync();
+        if (response.StatusCode == HttpStatusCode.NotFound)
         {
-            var accessToken = await GetAccessToken();
-
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-            // Tuần tự hóa UserEditRequest thành JSON
-            var jsonContent = JsonSerializer.Serialize(userDto);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-            // Gọi API với ID của người dùng
-            var response = await _httpClient.PutAsync($"{_baseUri}/{userId}", content);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                if (response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    throw new Exception($"Người dùng không tồn tại. Chi tiết: {errorContent}");
-                }
-                throw new Exception($"Lỗi khi cập nhật người dùng: {response.ReasonPhrase}, Chi tiết: {errorContent}");
-            }
+            throw new Exception($"Người dùng không tồn tại. Chi tiết: {errorContent}");
         }
+        throw new Exception($"Lỗi khi cập nhật người dùng: {response.ReasonPhrase}, Chi tiết: {errorContent}");
+    }
+}
 
-        public async Task DeleteUser(string userId)
-        {
-            var accessToken = await GetAccessToken();
+public async Task DeleteUser(string realm, string userId)
+{
+    var accessToken = await GetAccessToken();
+    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-    
-            var response = await _httpClient.DeleteAsync($"{_baseUri}/{userId}");
+    var response = await _httpClient.DeleteAsync($"http://localhost:8080/admin/realms/{realm}/users/{userId}");
 
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                throw new Exception($"Failed to delete user. Status code: {response.StatusCode}, Error: {errorContent}");
-            }
-        }
+    if (!response.IsSuccessStatusCode)
+    {
+        var errorContent = await response.Content.ReadAsStringAsync();
+        throw new Exception($"Lỗi khi xóa người dùng. Mã trạng thái: {response.StatusCode}, Lỗi: {errorContent}");
+    }
+}
+
     }
 }

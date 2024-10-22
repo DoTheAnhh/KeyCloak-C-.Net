@@ -1,0 +1,21 @@
+.pass {
+  margin: 15px 0;
+}
+
+.passlabel {
+  padding-right: 50px;
+}
+
+.passinput {
+  height: 20px;
+  width: 200px;
+}
+
+.usernamelabel {
+  padding-right: 45px;
+}
+
+.usernameinput {
+  height: 20px;
+  width: 200px;
+}

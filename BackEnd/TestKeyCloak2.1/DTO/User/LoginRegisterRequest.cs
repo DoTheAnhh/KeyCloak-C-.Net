@@ -1,4 +1,4 @@
-﻿namespace TestKeyCloak2._1.DTO;
+﻿namespace TestKeyCloak2._1.DTO.User;
 
 public class LoginRegisterRequest
 {

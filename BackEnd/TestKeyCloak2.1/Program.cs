@@ -1,9 +1,5 @@
-using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-using TestKeyCloak2._1.Controllers;
 using TestKeyCloak2._1.Service;
 using TestKeyCloak2._1.Service.impl;
 
@@ -65,11 +61,12 @@ var app = builder.Build();
 //     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Keycloak API v1"));
 // }
 
-app.UseCors("AllowReactApp");
+
 
 // Sử dụng Middleware
 app.UseHttpsRedirection();
-app.UseAuthentication(); // Đảm bảo gọi sau UseRouting
+app.UseCors("AllowReactApp");
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

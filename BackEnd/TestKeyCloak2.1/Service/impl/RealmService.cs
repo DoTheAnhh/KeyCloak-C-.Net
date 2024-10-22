@@ -41,6 +41,43 @@ public class RealmService : IRealmService
         throw new Exception($"Error retrieving access token: {response.ReasonPhrase}");
     }
 
+    public async Task<List<RealmResponse>> GetAllRealmsAsync()
+    {
+        var accessToken = await GetAccessToken();
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            
+        var response = await _httpClient.GetAsync(_baseUri);
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorResponse = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Error retrieving realms: {response.StatusCode} - {errorResponse}");
+        }
+
+        var jsonResponse = await response.Content.ReadAsStringAsync();
+        return JsonConvert.DeserializeObject<List<RealmResponse>>(jsonResponse);
+    }
+
+    public async Task<RealmResponse> GetRealmByIdAsync(string realmId)
+    {
+        if (string.IsNullOrWhiteSpace(realmId))
+        {
+            throw new ArgumentException("Realm ID cannot be null or empty.", nameof(realmId));
+        }
+
+        var accessToken = await GetAccessToken();
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            
+        var response = await _httpClient.GetAsync($"{_baseUri}/{realmId}");
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorResponse = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Error retrieving realm by ID: {response.StatusCode} - {errorResponse}");
+        }
+
+        var jsonResponse = await response.Content.ReadAsStringAsync();
+        return JsonConvert.DeserializeObject<RealmResponse>(jsonResponse);
+    }
+
     public async Task CreateRealmAsync(RealmInsertRequest realmRequest)
     {
         var accessToken = await GetAccessToken();

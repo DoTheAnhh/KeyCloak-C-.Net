@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 using TestKeyCloak2._1.DTO;
 using TestKeyCloak2._1.Service;
 
@@ -8,7 +7,7 @@ namespace TestKeyCloak2._1.Controllers
     [ApiController]
     [Route("api/user")]
     public class UserController : ControllerBase
-    {
+    {   
         private readonly IUserService _userService;
 
         public UserController(IUserService userService)
@@ -17,26 +16,26 @@ namespace TestKeyCloak2._1.Controllers
         }
         
         [HttpGet]
-        public async Task<IActionResult> GetUser()
+        public async Task<IActionResult> GetUser([FromQuery] string realm)
         {
-            var user = await _userService.GetUser();
-
-            return Ok(user);
+            var users = await _userService.GetUser(realm);
+            return Ok(users);
         }
 
+        // https://localhost:44333/api/user?realm=DemoRealm
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetUserById(string id)
+        public async Task<IActionResult> GetUserById(string realm, string id)
         {
-            var user = await _userService.GetUserById(id);
+            var user = await _userService.GetUserById(realm, id);
             if (user == null)
             {
-                return NotFound($"User with ID {id} not found.");
+                return NotFound($"Người dùng với ID {id} không tìm thấy trong realm {realm}.");
             }
             return Ok(user);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateUser([FromBody] UserInsertRequest userDto)
+        public async Task<IActionResult> CreateUser([FromBody] UserInsertRequest userDto, [FromQuery] string realm)
         {
             if (userDto == null)
             {
@@ -45,7 +44,7 @@ namespace TestKeyCloak2._1.Controllers
 
             try
             {
-                await _userService.CreateUser(userDto);
+                await _userService.CreateUser(userDto, realm);
                 return StatusCode(201);
             }
             catch (Exception ex)
@@ -53,9 +52,9 @@ namespace TestKeyCloak2._1.Controllers
                 return StatusCode(500, $"Lỗi máy chủ: {ex.Message}");
             }
         }
-        
-        [HttpPut("{userId}")]
-        public async Task<IActionResult> EditUser(string userId, [FromBody] UserEditRequest userDto)
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> EditUser([FromQuery] string realm, string id, [FromBody] UserEditRequest userDto)
         {
             if (userDto == null)
             {
@@ -64,26 +63,26 @@ namespace TestKeyCloak2._1.Controllers
 
             try
             {
-                await _userService.EditUser(userId, userDto);
+                await _userService.EditUser(realm, id, userDto);
                 return NoContent();
             }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Lỗi máy chủ: {ex.Message}");
             }
-        } 
-        
-        [HttpDelete("{userId}")]
-        public async Task<IActionResult> DeleteUser(string userId)
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUser([FromQuery] string realm, string id)
         {
             try
             {
-                await _userService.DeleteUser(userId);
+                await _userService.DeleteUser(realm, id);
                 return NoContent();
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, $"Lỗi máy chủ: {ex.Message}");
             }
         }
     }
