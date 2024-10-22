@@ -1,0 +1,35 @@
+﻿version: '3'
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:22.0.1
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_DB=mysql
+      - KC_DB_URL_DATABASE=keycloak
+      - KC_DB_URL_HOST=mysql
+      - KC_DB_URL_PORT=3306
+      - KC_DB_USERNAME=root
+      - KC_DB_PASSWORD=123456
+    command: start-dev
+    ports:
+      - "8080:8080"
+    networks:
+      - keycloak-network
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: keycloak
+    ports:
+      - "3307:3306"
+    networks:
+      - keycloak-network
+
+networks:
+  keycloak-network:
+    driver: bridge

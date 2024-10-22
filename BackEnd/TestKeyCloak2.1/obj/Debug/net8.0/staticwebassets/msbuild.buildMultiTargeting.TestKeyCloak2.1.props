@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\TestKeyCloak2.1.props" />
+</Project>
