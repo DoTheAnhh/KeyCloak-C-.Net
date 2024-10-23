@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using TestKeyCloak2._1.Service;
 using TestKeyCloak2._1.Service.impl;
 
@@ -42,11 +43,11 @@ builder.Services.AddHttpClient<IRealmService, RealmService>();
 
 
 // Thêm dịch vụ Swagger
-// builder.Services.AddEndpointsApiExplorer();
-// builder.Services.AddSwaggerGen(c =>
-// {
-//     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Keycloak API", Version = "v1" });
-// });
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo() { Title = "Keycloak API", Version = "v1" });
+});
 
 // Thêm dịch vụ HttpClient để gọi Keycloak API
 builder.Services.AddHttpClient();
@@ -55,11 +56,11 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
-// if (app.Environment.IsDevelopment())
-// {
-//     app.UseSwagger();
-//     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Keycloak API v1"));
-// }
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Keycloak API v1"));
+}
 
 
 
