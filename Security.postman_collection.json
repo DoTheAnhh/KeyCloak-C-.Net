@@ -1,0 +1,200 @@
+{
+	"info": {
+		"_postman_id": "1975d85e-7678-4877-ac32-122bc3caf0c9",
+		"name": "Security",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28680146"
+	},
+	"item": [
+		{
+			"name": "login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"string\",\r\n    \"password\": \"string\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:44333/api/auth/login",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "44333",
+					"path": [
+						"api",
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "logout",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "https://localhost:44333/api/auth/logout?refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJkNWUxNDJhMC0wNDkyLTQyZGQtYWM5YS0xYzAyNmFhZjhjYWUifQ.eyJleHAiOjE3Mjk2NTQ0NjEsImlhdCI6MTcyOTY1MjY2MSwianRpIjoiM2MxMjk0MjAtMjFlNy00ODAxLTk5NDQtMThlNTA2ZDcwMWNkIiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL3JlYWxtcy9EZW1vUmVhbG0iLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjgwODAvcmVhbG1zL0RlbW9SZWFsbSIsInN1YiI6IjM4ZWYxZTQ0LTdkMzAtNDM5OC05OWFmLTg3M2IxZGQwMTlhMSIsInR5cCI6IlJlZnJlc2giLCJhenAiOiJkZW1vY2xpZW50Iiwic2Vzc2lvbl9zdGF0ZSI6IjhiNGE0YzkxLTc4YTktNGQ2ZC04OTMxLWJkYjUwZmFkM2NhMCIsInNjb3BlIjoiZW1haWwgcHJvZmlsZSIsInNpZCI6IjhiNGE0YzkxLTc4YTktNGQ2ZC04OTMxLWJkYjUwZmFkM2NhMCJ9._1QGVqGYM9sD0kBCUrB8y7Fq4gzPbOl0sYyEvBstwyo",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "44333",
+					"path": [
+						"api",
+						"auth",
+						"logout"
+					],
+					"query": [
+						{
+							"key": "refreshToken",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJkNWUxNDJhMC0wNDkyLTQyZGQtYWM5YS0xYzAyNmFhZjhjYWUifQ.eyJleHAiOjE3Mjk2NTQ0NjEsImlhdCI6MTcyOTY1MjY2MSwianRpIjoiM2MxMjk0MjAtMjFlNy00ODAxLTk5NDQtMThlNTA2ZDcwMWNkIiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL3JlYWxtcy9EZW1vUmVhbG0iLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjgwODAvcmVhbG1zL0RlbW9SZWFsbSIsInN1YiI6IjM4ZWYxZTQ0LTdkMzAtNDM5OC05OWFmLTg3M2IxZGQwMTlhMSIsInR5cCI6IlJlZnJlc2giLCJhenAiOiJkZW1vY2xpZW50Iiwic2Vzc2lvbl9zdGF0ZSI6IjhiNGE0YzkxLTc4YTktNGQ2ZC04OTMxLWJkYjUwZmFkM2NhMCIsInNjb3BlIjoiZW1haWwgcHJvZmlsZSIsInNpZCI6IjhiNGE0YzkxLTc4YTktNGQ2ZC04OTMxLWJkYjUwZmFkM2NhMCJ9._1QGVqGYM9sD0kBCUrB8y7Fq4gzPbOl0sYyEvBstwyo"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "refresh-token",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJkNWUxNDJhMC0wNDkyLTQyZGQtYWM5YS0xYzAyNmFhZjhjYWUifQ.eyJleHAiOjE3Mjk2NTI0NjQsImlhdCI6MTcyOTY1MDY2NCwianRpIjoiYjM2ODY1MzctZTM2YS00MWMwLWI0YTQtN2M1ZmRjMzc5YmMxIiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL3JlYWxtcy9EZW1vUmVhbG0iLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjgwODAvcmVhbG1zL0RlbW9SZWFsbSIsInN1YiI6IjM4ZWYxZTQ0LTdkMzAtNDM5OC05OWFmLTg3M2IxZGQwMTlhMSIsInR5cCI6IlJlZnJlc2giLCJhenAiOiJkZW1vY2xpZW50Iiwic2Vzc2lvbl9zdGF0ZSI6IjBjNGMxNDIxLTNjYTItNGQ4OC05M2Q1LWNmY2MwMjFmNzVjNiIsInNjb3BlIjoiZW1haWwgcHJvZmlsZSIsInNpZCI6IjBjNGMxNDIxLTNjYTItNGQ4OC05M2Q1LWNmY2MwMjFmNzVjNiJ9.EauQ_m1_Yi3N1IGx_IXz26tci3w0urPi5RAXT_MJZx8\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:44333/api/auth/refresh-token",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "44333",
+					"path": [
+						"api",
+						"auth",
+						"refresh-token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"string\",\r\n    \"password\": \"string\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:44333/api/auth/register",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "44333",
+					"path": [
+						"api",
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "exchange",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "client_id",
+						"value": "democlient",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "redirect_uri",
+						"value": "http://localhost:3000/callback",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "grant_type",
+						"value": "authorization_code",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "code",
+						"value": "66b593fc-6c25-4987-98ec-33eeea433768.b3389ccd-340e-46d3-82ee-5c0c2ca9fe3f.9cc041fc-d21c-4832-a1ae-c8201fc1c8a4",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "https://localhost:44333/api/auth/exchange?code=4a3a68c1-d142-4e7a-81f1-b00dd1680369.b3389ccd-340e-46d3-82ee-5c0c2ca9fe3f.9cc041fc-d21c-4832-a1ae-c8201fc1c8a4",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "44333",
+					"path": [
+						"api",
+						"auth",
+						"exchange"
+					],
+					"query": [
+						{
+							"key": "code",
+							"value": "4a3a68c1-d142-4e7a-81f1-b00dd1680369.b3389ccd-340e-46d3-82ee-5c0c2ca9fe3f.9cc041fc-d21c-4832-a1ae-c8201fc1c8a4"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "redirect",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://localhost:44333/api/auth/redirect",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "44333",
+					"path": [
+						"api",
+						"auth",
+						"redirect"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
