@@ -1,4 +1,5 @@
-﻿using TestKeyCloak2._1.DTO.User;
+﻿using TestKeyCloak2._1.DTO;
+using TestKeyCloak2._1.DTO.User;
 
 namespace TestKeyCloak2._1.Service
 {
@@ -6,7 +7,7 @@ namespace TestKeyCloak2._1.Service
     { 
         Task<string> RegisterUser(LoginRegisterRequest loginRegisterRequest, string realm);
         
-        Task<string> LoginUser(LoginRegisterRequest loginRegisterRequest);
+        Task<(string AccessToken, string RefreshToken, string Realm)> LoginUser(LoginRegisterRequest loginRegisterRequest);
 
         Task<string> Logout(string refreshToken);
         
@@ -17,5 +18,7 @@ namespace TestKeyCloak2._1.Service
         void RedirectToKeycloak(HttpContext httpContext); // Chuyển hướng người dùng đến Keycloak (yêu cầu HttpContext)
 
         Task<string> ExchangeCodeForToken(string code); // Trao đổi mã lấy access token
+
+        Task<List<UserResponse>> GetAllUsers(string accessToken);
     }
 }

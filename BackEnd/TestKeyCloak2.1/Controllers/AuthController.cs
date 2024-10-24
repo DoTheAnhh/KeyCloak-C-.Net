@@ -41,14 +41,33 @@ namespace TestKeyCloak2._1.Controllers
             {
                 return BadRequest(ModelState);
             }
-
-            var result = await _authService.LoginUser(request);
-            if (result.Contains("Error"))
+            try
             {
-                return Unauthorized(new { message = result });
+                var (token, realm, refreshToken) = await _authService.LoginUser(request);
+                return Ok(new { token, realm, refreshToken });
             }
-
-            return Ok(new { token = result });
+            catch (Exception ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+        }
+        
+        [HttpGet("users")]
+        public async Task<IActionResult> GetAllUsers([FromHeader(Name = "Authorization")] string accessToken)
+        {
+            try
+            {
+                var users = await _authService.GetAllUsers(accessToken.Replace("Bearer ", ""));
+                return Ok(users);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
         
         [HttpPost("logout")]
@@ -66,14 +85,6 @@ namespace TestKeyCloak2._1.Controllers
             }
 
             return Ok(new { message = "Logout successful." });
-        }
-
-        // Redirect đến Keycloak để đăng nhập
-        [HttpGet("redirect")]
-        public IActionResult RedirectToKeycloak()
-        {
-            _authService.RedirectToKeycloak(HttpContext);
-            return new EmptyResult();
         }
 
         // Xử lý đổi code lấy token để truy cập
@@ -111,5 +122,14 @@ namespace TestKeyCloak2._1.Controllers
 
             return Ok(new { token = result });
         }
+        
+        // Redirect đến Keycloak để đăng nhập
+        [HttpGet("redirect")]
+        public IActionResult RedirectToKeycloak()
+        {
+            _authService.RedirectToKeycloak(HttpContext);
+            return new EmptyResult();
+        }
+
     }
 }

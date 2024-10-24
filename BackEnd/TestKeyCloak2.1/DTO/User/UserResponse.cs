@@ -2,6 +2,8 @@
 
 public class UserResponse
 {
-    public string Id { get; set; }
-    public string Username { get; set; }
+    public string id { get; set; }
+    public string username { get; set; }
+    public string email { get; set; }
+    public bool enable { get; set; }
 }

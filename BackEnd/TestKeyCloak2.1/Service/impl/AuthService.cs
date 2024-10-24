@@ -1,7 +1,7 @@
 ﻿using System.Net.Http.Headers;
 using System.Text;
-using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
+using TestKeyCloak2._1.DTO;
 using TestKeyCloak2._1.DTO.User;
 
 namespace TestKeyCloak2._1.Service.impl
@@ -96,35 +96,59 @@ namespace TestKeyCloak2._1.Service.impl
             return $"Error: {response.StatusCode} - {errorResponse}";
         }
 
-        public async Task<string> LoginUser(LoginRegisterRequest loginRegisterRequest)
+        public async Task<(string AccessToken, string RefreshToken, string Realm)> LoginUser(LoginRegisterRequest loginRegisterRequest)
         {
             var url = $"{KeycloakBaseUrl}/realms/{Realm}/protocol/openid-connect/token";
-
+        
+            
             var requestData = new[]
             {
                 new KeyValuePair<string, string>("client_id", ClientId),
                 new KeyValuePair<string, string>("grant_type", "password"),
                 new KeyValuePair<string, string>("username", loginRegisterRequest.Username),
-                new KeyValuePair<string, string>("password", loginRegisterRequest.Password)
+                new KeyValuePair<string, string>("password", loginRegisterRequest.Password),
             };
-
+        
             var content = new FormUrlEncodedContent(requestData);
             var response = await _httpClient.PostAsync(url, content);
-
+        
             if (response.IsSuccessStatusCode)
             {
                 var tokenResponse = await response.Content.ReadAsStringAsync();
-                var tokenData = JsonConvert.DeserializeObject<TokenResponse>(tokenResponse);
-
-                SaveToken(tokenData.access_token);
-
-                return tokenResponse;
+                dynamic tokenData = JsonConvert.DeserializeObject(tokenResponse);
+                
+                string accessToken = tokenData.access_token;
+                string refreshToken = tokenData.refresh_token;
+                string userRealm = Realm;
+                
+                return (accessToken, userRealm, refreshToken);
             }
-
+        
             var errorResponse = await response.Content.ReadAsStringAsync();
-            return $"Error: {response.StatusCode} - {errorResponse}";
+            throw new Exception($"Error: {response.StatusCode} - {errorResponse}");
         }
         
+        public async Task<List<UserResponse>> GetAllUsers(string accessToken)
+        {
+            var url = $"{KeycloakBaseUrl}/admin/realms/{Realm}/users";
+
+            // Thêm token vào Header
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+            var response = await _httpClient.GetAsync(url);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                // Deserializate JSON thành List<UserResponse>
+                return JsonConvert.DeserializeObject<List<UserResponse>>(jsonResponse);
+            }
+            else
+            {
+                throw new HttpRequestException($"Error fetching users: {response.ReasonPhrase}");
+            }
+        }
+
         public async Task<string> Logout(string refreshToken)
         {
             var url = $"{KeycloakBaseUrl}/realms/{Realm}/protocol/openid-connect/logout";
@@ -140,8 +164,6 @@ namespace TestKeyCloak2._1.Service.impl
 
             if (response.IsSuccessStatusCode)
             {
-                //RemoveToken();
-
                 return "Logout successful";
             }
 
@@ -149,16 +171,6 @@ namespace TestKeyCloak2._1.Service.impl
             return $"Error: {errorResponse}"; // Trả về lỗi nếu có
         }
 
-        // Redirect người dùng đến trang login của Keycloak
-        public void RedirectToKeycloak(HttpContext httpContext)
-        {
-            var redirectUrl = $"{KeycloakBaseUrl}/realms/{Realm}/protocol/openid-connect/auth?" +
-                              $"client_id={ClientId}&response_type=code&redirect_uri={RedirectUri}&scope=openid";
-
-            httpContext.Response.Redirect(redirectUrl);
-        }
-
-        // Lấy code trả về từ redirect ròi exchange
         public async Task<string> ExchangeCodeForToken(string code)
         {
             var url = $"{KeycloakBaseUrl}/realms/{Realm}/protocol/openid-connect/token";
@@ -177,35 +189,12 @@ namespace TestKeyCloak2._1.Service.impl
             if (response.IsSuccessStatusCode)
             {
                 var tokenResponse = await response.Content.ReadAsStringAsync();
-                var tokenData = JsonConvert.DeserializeObject<TokenResponse>(tokenResponse);
-
-                SaveToken(tokenData.access_token);
 
                 return tokenResponse;
             }
 
             var errorResponse = await response.Content.ReadAsStringAsync();
             return $"Error: {errorResponse}";
-        }
-
-        // Lưu token vào cookie hoặc local storage
-        private void SaveToken(string token)
-        {
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                Expires = DateTimeOffset.UtcNow.AddMinutes(60)
-            };
-            //HttpContext.Current.Response.Cookies.Append("access_token", token, cookieOptions);
-        }
-        
-        // Xóa token
-        private void RemoveToken()
-        {
-            // Nếu lưu token trong cookie thì xóa
-            // _httpContextAccessor.HttpContext.Response.Cookies.Delete("access_token");
-            // _httpContextAccessor.HttpContext.Response.Cookies.Delete("refresh_token");
         }
 
         // Làm mới token bằng refresh token
@@ -227,9 +216,7 @@ namespace TestKeyCloak2._1.Service.impl
             {
                 var tokenResponse = await response.Content.ReadAsStringAsync();
                 var tokenData = JsonConvert.DeserializeObject<TokenResponse>(tokenResponse);
-
-                SaveToken(tokenData.access_token);
-
+                
                 return tokenData.access_token;
             }
 
@@ -242,6 +229,15 @@ namespace TestKeyCloak2._1.Service.impl
         {
             var accessToken = httpContext.Request.Cookies["access_token"];
             return !string.IsNullOrEmpty(accessToken); 
+        }
+        
+        // Redirect người dùng đến trang login của Keycloak
+        public void RedirectToKeycloak(HttpContext httpContext)
+        {
+            var redirectUrl = $"{KeycloakBaseUrl}/realms/{Realm}/protocol/openid-connect/auth?" +
+                              $"client_id={ClientId}&response_type=code&redirect_uri={RedirectUri}&scope=openid";
+
+            httpContext.Response.Redirect(redirectUrl);
         }
     }
 }
