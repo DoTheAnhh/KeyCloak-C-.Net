@@ -9,27 +9,37 @@ namespace TestKeyCloak2._1.Service.impl
     public class AuthService : IAuthService
     {
         private readonly HttpClient _httpClient;
-        
-        private const string KeycloakBaseUrl = "http://localhost:8080";
-        private const string Realm = "DemoRealm";
-        private const string ClientId = "democlient";
-        private const string RedirectUri = "http://localhost:3000/callback"; // URI nhận code từ Keycloak trả về
+        private readonly IConfiguration _configuration;
 
-        public AuthService(HttpClient httpClient)
+        private readonly string _keycloakBaseUrl;
+        private readonly string _realm;
+        private readonly string _clientId;
+        private readonly string _redirectUri;
+        private readonly string _adminUsername;
+        private readonly string _adminPassword;
+
+        public AuthService(HttpClient httpClient, IConfiguration configuration)
         {
             _httpClient = httpClient;
+            _configuration = configuration;
+
+            _keycloakBaseUrl = _configuration["Keycloak:BaseUrl"]!;
+            _realm = _configuration["Keycloak:Realm"]!;
+            _clientId = _configuration["Keycloak:ClientId"]!;
+            _redirectUri = _configuration["Keycloak:RedirectUri"]!;
+            _adminUsername = _configuration["Keycloak:AdminCredentials:Username"]!;
+            _adminPassword = _configuration["Keycloak:AdminCredentials:Password"]!;
         }
 
-        // Lấy token admin để thực hiện management
         private async Task<string> GetAdminToken()
         {
-            var url = $"{KeycloakBaseUrl}/realms/master/protocol/openid-connect/token";
+            var url = $"{_keycloakBaseUrl}/realms/master/protocol/openid-connect/token";
 
             var requestData = new[]
             {
                 new KeyValuePair<string, string>("client_id", "admin-cli"),
-                new KeyValuePair<string, string>("username", "admin"),
-                new KeyValuePair<string, string>("password", "admin"),
+                new KeyValuePair<string, string>("username", _adminUsername),
+                new KeyValuePair<string, string>("password", _adminPassword),
                 new KeyValuePair<string, string>("grant_type", "password")
             };
 
@@ -42,13 +52,12 @@ namespace TestKeyCloak2._1.Service.impl
                 dynamic tokenData = JsonConvert.DeserializeObject(tokenResponse);
                 return tokenData.access_token;
             }
-            return null;
+            return null!;
         }
 
-        // Đăng kí user thông qua Keycloak
         public async Task<string> RegisterUser(LoginRegisterRequest loginRegisterRequest, string realm)
         {
-            if (loginRegisterRequest == null)
+            if (loginRegisterRequest == null!)
             {
                 return "LoginRegisterRequest cannot be null.";
             }
@@ -64,7 +73,7 @@ namespace TestKeyCloak2._1.Service.impl
                 return "Failed to obtain admin token.";
             }
 
-            var url = $"{KeycloakBaseUrl}/admin/realms/{realm}/users";
+            var url = $"{_keycloakBaseUrl}/admin/realms/{realm}/users";
             var newUser = new
             {
                 username = loginRegisterRequest.Username,
@@ -98,12 +107,11 @@ namespace TestKeyCloak2._1.Service.impl
 
         public async Task<(string AccessToken, string RefreshToken, string Realm)> LoginUser(LoginRegisterRequest loginRegisterRequest)
         {
-            var url = $"{KeycloakBaseUrl}/realms/{Realm}/protocol/openid-connect/token";
+            var url = $"{_keycloakBaseUrl}/realms/{_realm}/protocol/openid-connect/token";
         
-            
             var requestData = new[]
             {
-                new KeyValuePair<string, string>("client_id", ClientId),
+                new KeyValuePair<string, string>("client_id", _clientId),
                 new KeyValuePair<string, string>("grant_type", "password"),
                 new KeyValuePair<string, string>("username", loginRegisterRequest.Username),
                 new KeyValuePair<string, string>("password", loginRegisterRequest.Password),
@@ -119,7 +127,7 @@ namespace TestKeyCloak2._1.Service.impl
                 
                 string accessToken = tokenData.access_token;
                 string refreshToken = tokenData.refresh_token;
-                string userRealm = Realm;
+                string userRealm = _realm;
                 
                 return (accessToken, userRealm, refreshToken);
             }
@@ -130,7 +138,7 @@ namespace TestKeyCloak2._1.Service.impl
         
         public async Task<List<UserResponse>> GetAllUsers(string accessToken)
         {
-            var url = $"{KeycloakBaseUrl}/admin/realms/{Realm}/users";
+            var url = $"{_keycloakBaseUrl}/admin/realms/{_realm}/users";
 
             // Thêm token vào Header
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
@@ -140,7 +148,6 @@ namespace TestKeyCloak2._1.Service.impl
             if (response.IsSuccessStatusCode)
             {
                 var jsonResponse = await response.Content.ReadAsStringAsync();
-                // Deserializate JSON thành List<UserResponse>
                 return JsonConvert.DeserializeObject<List<UserResponse>>(jsonResponse);
             }
             else
@@ -151,11 +158,11 @@ namespace TestKeyCloak2._1.Service.impl
 
         public async Task<string> Logout(string refreshToken)
         {
-            var url = $"{KeycloakBaseUrl}/realms/{Realm}/protocol/openid-connect/logout";
+            var url = $"{_keycloakBaseUrl}/realms/{_realm}/protocol/openid-connect/logout";
 
             var requestData = new[]
             {
-                new KeyValuePair<string, string>("client_id", ClientId),
+                new KeyValuePair<string, string>("client_id", _clientId),
                 new KeyValuePair<string, string>("refresh_token", refreshToken)
             };
 
@@ -168,19 +175,19 @@ namespace TestKeyCloak2._1.Service.impl
             }
 
             var errorResponse = await response.Content.ReadAsStringAsync();
-            return $"Error: {errorResponse}"; // Trả về lỗi nếu có
+            return $"Error: {errorResponse}";
         }
 
-        public async Task<string> ExchangeCodeForToken(string code)
+        public async Task<(string AccessToken, string RefreshToken)> ExchangeCodeForToken(string code)
         {
-            var url = $"{KeycloakBaseUrl}/realms/{Realm}/protocol/openid-connect/token";
+            var url = $"{_keycloakBaseUrl}/realms/{_realm}/protocol/openid-connect/token";
 
             var requestData = new[]
             {
-                new KeyValuePair<string, string>("client_id", ClientId),
+                new KeyValuePair<string, string>("client_id", _clientId),
                 new KeyValuePair<string, string>("grant_type", "authorization_code"),
-                new KeyValuePair<string, string>("code", code),  // Mã code từ URL
-                new KeyValuePair<string, string>("redirect_uri", RedirectUri)
+                new KeyValuePair<string, string>("code", code),
+                new KeyValuePair<string, string>("redirect_uri", _redirectUri)
             };
 
             var content = new FormUrlEncodedContent(requestData);
@@ -189,22 +196,25 @@ namespace TestKeyCloak2._1.Service.impl
             if (response.IsSuccessStatusCode)
             {
                 var tokenResponse = await response.Content.ReadAsStringAsync();
-
-                return tokenResponse;
+                dynamic tokenData = JsonConvert.DeserializeObject(tokenResponse);
+        
+                string accessToken = tokenData.access_token;
+                string refreshToken = tokenData.refresh_token;
+        
+                return (accessToken, refreshToken);
             }
 
             var errorResponse = await response.Content.ReadAsStringAsync();
-            return $"Error: {errorResponse}";
+            throw new Exception($"Error: {response.StatusCode} - {errorResponse} - Request Data: {JsonConvert.SerializeObject(requestData)}");
         }
 
-        // Làm mới token bằng refresh token
         public async Task<string> RefreshToken(string refreshToken)
         {
-            var url = $"{KeycloakBaseUrl}/realms/{Realm}/protocol/openid-connect/token";
+            var url = $"{_keycloakBaseUrl}/realms/{_realm}/protocol/openid-connect/token";
 
             var requestData = new[]
             {
-                new KeyValuePair<string, string>("client_id", ClientId),
+                new KeyValuePair<string, string>("client_id", _clientId),
                 new KeyValuePair<string, string>("grant_type", "refresh_token"),
                 new KeyValuePair<string, string>("refresh_token", refreshToken)
             };
@@ -224,20 +234,35 @@ namespace TestKeyCloak2._1.Service.impl
             return $"Error: {errorResponse}";
         }
 
-        // Check người dùng đã login hay chưa dựa vào token lưu trữ
         public async Task<bool> IsLoggedIn(HttpContext httpContext)
         {
             var accessToken = httpContext.Request.Cookies["access_token"];
             return !string.IsNullOrEmpty(accessToken); 
         }
         
-        // Redirect người dùng đến trang login của Keycloak
         public void RedirectToKeycloak(HttpContext httpContext)
         {
-            var redirectUrl = $"{KeycloakBaseUrl}/realms/{Realm}/protocol/openid-connect/auth?" +
-                              $"client_id={ClientId}&response_type=code&redirect_uri={RedirectUri}&scope=openid";
+            var redirectUrl = $"{_keycloakBaseUrl}/realms/{_realm}/protocol/openid-connect/auth?" +
+                              $"client_id={_clientId}&response_type=code&redirect_uri={_redirectUri}&scope=openid";
 
             httpContext.Response.Redirect(redirectUrl);
         }
+        
+        public void RedirectToGoogle(HttpContext httpContext)
+        {
+            var redirectUrl = $"{_keycloakBaseUrl}/realms/{_realm}/protocol/openid-connect/auth?" +
+                              $"client_id={_clientId}&response_type=code&redirect_uri={_redirectUri}&scope=openid&kc_idp_hint=google";
+
+            httpContext.Response.Redirect(redirectUrl);
+        }
+        
+        public void RedirectToGithub(HttpContext httpContext)
+        {
+            var redirectUrl = $"{_keycloakBaseUrl}/realms/{_realm}/protocol/openid-connect/auth?" +
+                              $"client_id={_clientId}&response_type=code&redirect_uri={_redirectUri}&scope=openid&kc_idp_hint=github";
+
+            httpContext.Response.Redirect(redirectUrl);
+        }
+
     }
 }

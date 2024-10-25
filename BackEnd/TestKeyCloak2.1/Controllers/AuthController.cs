@@ -96,13 +96,16 @@ namespace TestKeyCloak2._1.Controllers
                 return BadRequest(new { message = "Code cannot be null or empty." });
             }
 
-            var result = await _authService.ExchangeCodeForToken(code);
-            if (result.Contains("Error"))
+            try
             {
-                return BadRequest(new { message = result });
+                var (accessToken, refreshToken) = await _authService.ExchangeCodeForToken(code);
+                return Ok(new { accessToken, refreshToken });
             }
-
-            return Ok(new { token = result });
+            catch (Exception ex)
+            {
+                // Log the exception if needed
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         // Làm mới token
@@ -124,10 +127,25 @@ namespace TestKeyCloak2._1.Controllers
         }
         
         // Redirect đến Keycloak để đăng nhập
-        [HttpGet("redirect")]
+        [HttpGet("redirect-to-keycloak")]
         public IActionResult RedirectToKeycloak()
         {
             _authService.RedirectToKeycloak(HttpContext);
+            return new EmptyResult();
+        }
+        
+        // Redirect đến Google để đăng nhập
+        [HttpGet("redirect-to-google")]
+        public IActionResult RedirectToGoogle()
+        {
+            _authService.RedirectToGoogle(HttpContext);
+            return new EmptyResult();
+        }
+        
+        [HttpGet("redirect-to-github")]
+        public IActionResult RedirectToMicrosoft()
+        {
+            _authService.RedirectToGithub(HttpContext);
             return new EmptyResult();
         }
 

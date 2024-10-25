@@ -17,8 +17,12 @@ namespace TestKeyCloak2._1.Service
 
         void RedirectToKeycloak(HttpContext httpContext); // Chuyển hướng người dùng đến Keycloak (yêu cầu HttpContext)
 
-        Task<string> ExchangeCodeForToken(string code); // Trao đổi mã lấy access token
+        Task<(string AccessToken, string RefreshToken)> ExchangeCodeForToken(string code); // Trao đổi mã lấy access token
 
         Task<List<UserResponse>> GetAllUsers(string accessToken);
+
+        void RedirectToGoogle(HttpContext httpContext);
+
+        void RedirectToGithub(HttpContext httpContext);
     }
 }
