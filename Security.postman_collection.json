@@ -41,6 +41,7 @@
 			"request": {
 				"method": "POST",
 				"header": [],
+<<<<<<< HEAD
 				"body": {
 					"mode": "raw",
 					"raw": "",
@@ -50,6 +51,8 @@
 						}
 					}
 				},
+=======
+>>>>>>> c31730e8fab18f031d556eb3c5f3007df59a907f
 				"url": {
 					"raw": "https://localhost:44333/api/auth/logout?refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJkNWUxNDJhMC0wNDkyLTQyZGQtYWM5YS0xYzAyNmFhZjhjYWUifQ.eyJleHAiOjE3Mjk2NTQ0NjEsImlhdCI6MTcyOTY1MjY2MSwianRpIjoiM2MxMjk0MjAtMjFlNy00ODAxLTk5NDQtMThlNTA2ZDcwMWNkIiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL3JlYWxtcy9EZW1vUmVhbG0iLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjgwODAvcmVhbG1zL0RlbW9SZWFsbSIsInN1YiI6IjM4ZWYxZTQ0LTdkMzAtNDM5OC05OWFmLTg3M2IxZGQwMTlhMSIsInR5cCI6IlJlZnJlc2giLCJhenAiOiJkZW1vY2xpZW50Iiwic2Vzc2lvbl9zdGF0ZSI6IjhiNGE0YzkxLTc4YTktNGQ2ZC04OTMxLWJkYjUwZmFkM2NhMCIsInNjb3BlIjoiZW1haWwgcHJvZmlsZSIsInNpZCI6IjhiNGE0YzkxLTc4YTktNGQ2ZC04OTMxLWJkYjUwZmFkM2NhMCJ9._1QGVqGYM9sD0kBCUrB8y7Fq4gzPbOl0sYyEvBstwyo",
 					"protocol": "https",
